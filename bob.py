@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
+from discord.voice_client import VoiceClient
 import cleverbot
+import os
 import random
 import time
 
@@ -18,6 +20,7 @@ roasts = ['Yo mama so fat, she is fat', 'I would burn you but my mom said I am n
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client.user))
+    await client.change_presence(activity=discord.Game("being bob"))
 
 @client.command()
 async def repeat(ctx, *, msg):
@@ -62,20 +65,91 @@ In squalor, grow up to be a hero and a scholar?""")
 
 @client.command(pass_context=True)
 async def help(ctx):
-    channel = ctx.message.channel
     embed = discord.Embed(
         title = "Help",
         description = "Help section",
         colour = discord.Colour.blue()
     )
-    # embed.set_author('Help')
     embed.add_field(name='.repeat', value='Repeats what you said.', inline=False)
     embed.add_field(name='.smartass', value='Sends your message to cleverbot which answers to what you said.', inline=False)
     embed.add_field(name='.aboutbob', value='About bob', inline=False)
     embed.add_field(name='.shrek', value='Sings part of All Star by Smash Mouth', inline=False)
     embed.add_field(name='.alexander', value='Sings part of Lin-Manuael Miranda from musical Hamilton', inline=False)
+    embed.add_field(name='.join', value='Bob joins voice chat you are currently in (Work in progress, wont join to other voice chat if already in one)', inline=False)
+    embed.add_field(name='.play {link to music on youtube}', value='Plays music from link (Work in progress, it takes some time until it will play music, DO NOT PLAY MUSIC OVER 15 MINUTES, using it when music already plays will change music instantly)', inline=False)
+    embed.add_field(name='.pause', value='Pauses music', inline=False)
+    embed.add_field(name='.resume', value='Resumes paused music', inline=False)
+    embed.add_field(name='.stop', value='Stops playing music.', inline=False)
     embed.add_field(name='.autodestruction', value='Turns off bob', inline=False)
     await ctx.send(embed=embed)
 
+@client.command(pass_context=True)
+async def join(ctx):
+    try:
+        channel = ctx.message.author.voice.channel
+    except AttributeError as er:
+        await ctx.send("You are not in a voice channel")
+        return
+    await channel.connect()
+
+@client.command(pass_context=True)
+async def leave(ctx):
+    channel = ctx.message.author.voice.channel
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    await voice_client.disconnect()
+    #voice_client = client.voice_channel_in(server)
+    #await voice_client.disconnect()
+    #print(server)
+
+@client.command(pass_context=True)
+async def play(ctx, *, msg):
+    channel = ctx.message.author.voice.channel
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    os.system(f'youtube-dl {msg} -f "bestaudio" -x --audio-format mp3 --output "./audio.%(ext)s"')
+    await voice_client.play(discord.FFmpegPCMAudio(source="./audio.mp3"))
+
+@client.command(pass_context=True)
+async def pause(ctx):
+    channel = ctx.message.author.voice.channel
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    if not voice_client.is_playing():
+        await ctx.send("Currently I don't play anything")
+        return
+    if voice_client.is_paused():
+        await ctx.send("Song is already paused")
+        return
+    await voice_client.pause()
+
+@client.command(pass_context=True)
+async def resume(ctx):
+    channel = ctx.message.author.voice.channel
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    if not voice_client.is_paused():
+        await ctx.send("Nothing to resume")
+        return
+    await voice_client.resume()
+
+@client.command(pass_context=True)
+async def stop(ctx):
+    channel = ctx.message.author.voice.channel
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    await voice_client.stop()
+    os.remove('./audio.mp3')
+
+@client.command(pass_context=True)
+async def gay(ctx):
+    #print(ctx.message.author.roles)
+    for i in ctx.message.author.roles:
+        if i.id == 777956547283648532:
+            await ctx.send('no')
+            return
+
+    await ctx.send('YES')
+    #print(ctx.message.author.roles)
 
 client.run(TOKEN)
