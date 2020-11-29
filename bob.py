@@ -13,8 +13,6 @@ cb = cleverbot.load('bob.bob')
 anstospam = ["Don't do this please", 'Can you stop doing that?',
              'No buddy', 'God dammit stop', 'Why are you doing that?',
              'bruh']
-roasts = ['Yo mama so fat, she is fat', 'I would burn you but my mom said I am not allowed to burn trash',
-          'You are eating to much and you should go on a diet']
 
 
 @client.event
@@ -94,10 +92,13 @@ async def join(ctx):
 
 @client.command(pass_context=True)
 async def leave(ctx):
-    channel = ctx.message.author.voice.channel
-    voice_clients = client.voice_clients
-    voice_client = voice_clients[0]
-    await voice_client.disconnect()
+    try:
+        voice_clients = client.voice_clients
+        voice_client = voice_clients[0]
+        await voice_client.disconnect()
+    except:
+        await ctx.send("I am not connected to any channel")
+        return
     #voice_client = client.voice_channel_in(server)
     #await voice_client.disconnect()
     #print(server)
@@ -116,10 +117,10 @@ async def pause(ctx):
     voice_clients = client.voice_clients
     voice_client = voice_clients[0]
     if not voice_client.is_playing():
-        await ctx.send("Currently I don't play anything")
+        await ctx.send("Currently I am not playing anything")
         return
     if voice_client.is_paused():
-        await ctx.send("Song is already paused")
+        await ctx.send("Already paused")
         return
     await voice_client.pause()
 
