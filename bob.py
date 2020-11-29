@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord.voice_client import VoiceClient
 import cleverbot
+from gtts import gTTS
 import os
 import random
 import time
@@ -68,8 +69,8 @@ async def help(ctx):
         description = "Help section",
         colour = discord.Colour.blue()
     )
-    embed.add_field(name='.repeat', value='Repeats what you said.', inline=False)
-    embed.add_field(name='.smartass', value='Sends your message to cleverbot which answers to what you said.', inline=False)
+    embed.add_field(name='.repeat {message to repeat}', value='Repeats what you said.', inline=False)
+    embed.add_field(name='.smartass {message to answer}', value='Sends your message to cleverbot which answers to what you said.', inline=False)
     embed.add_field(name='.aboutbob', value='About bob', inline=False)
     embed.add_field(name='.shrek', value='Sings part of All Star by Smash Mouth', inline=False)
     embed.add_field(name='.alexander', value='Sings part of Lin-Manuael Miranda from musical Hamilton', inline=False)
@@ -78,6 +79,7 @@ async def help(ctx):
     embed.add_field(name='.pause', value='Pauses music', inline=False)
     embed.add_field(name='.resume', value='Resumes paused music', inline=False)
     embed.add_field(name='.stop', value='Stops playing music.', inline=False)
+    embed.add_field(name='.speak {2 letter language code (e.g. pl or en)} {what you want bob to say}', value='Bob will say anything you tell bob to on voice chat, egzample of use: ".speak en asshole" (work in progress, can be buggy)')
     embed.add_field(name='.autodestruction', value='Turns off bob', inline=False)
     await ctx.send(embed=embed)
 
@@ -105,7 +107,7 @@ async def leave(ctx):
 
 @client.command(pass_context=True)
 async def play(ctx, *, msg):
-    channel = ctx.message.author.voice.channel
+    #channel = ctx.message.author.voice.channel
     voice_clients = client.voice_clients
     voice_client = voice_clients[0]
     os.system(f'youtube-dl {msg} -f "bestaudio" -x --audio-format mp3 --output "./audio.%(ext)s"')
@@ -149,8 +151,15 @@ async def gay(ctx):
         if i.id == 777956547283648532:
             await ctx.send('no')
             return
-
     await ctx.send('YES')
     #print(ctx.message.author.roles)
+
+@client.command(pass_contest=True)
+async def speak(ctx, langu, *, msg):
+    tts = gTTS(msg, lang=langu)
+    tts.save('speak.mp3')
+    voice_clients = client.voice_clients
+    voice_client = voice_clients[0]
+    await voice_client.play(discord.FFmpegPCMAudio(source="./speak.mp3"))
 
 client.run(TOKEN)
