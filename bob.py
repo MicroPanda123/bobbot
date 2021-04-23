@@ -2,24 +2,35 @@ import os
 import cleverbot
 import discord
 from discord.ext import commands
+from discord.ext.commands.errors import *
 import wikipedia
 import pyjokes
 import random
 import psycopg2
 
-TOKEN = "hidden"
-conn = psycopg2.connect(database="hidden", user="hidden", password="hidden", host="localhost", port="hidden")
+TOKEN = "hidden" #remove this when you commit dumbass
+conn = psycopg2.connect(database="BobBase", user="Bob", password="", host="localhost", port="5433") #remove this too
 cur = conn.cursor()
 client = commands.Bot(command_prefix='.')
 client.remove_command('help')
 cb = cleverbot.load('bob.bob')
-permissions = [230750179874045952, 749989977294635038, 622185311707070504]
+permissions = [230750179874045952, 749989977294635038, 622185311707070504] #Don't remove or we will lose control over mutes and warns
 #ludwig = Ludwiger(['tweet'], 'model/')
 spam = ["Don't do this please", 'Can you stop doing that?',
         'No buddy', 'God dammit stop', 'Why are you doing that?',
         'bruh']  ## TODO: Use this somewhere
 
-blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can", "help", "you", "save", "15%", "on", "car", "insurance"]
+blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can", "help", "you", "save", "15%", "on", "car", "insurance"] #wtf is that
+
+def is_muted(id):
+    ## FIXME: If a lot of people are muted it could lag every time
+    ## someone send messages, but there are like 30 people on this server so fuck this
+    cur.execute(f"select user_id from mutes;")
+    mutes = cur.fetchall()
+    for mute in mutes:
+        if mute[0] == int(id):
+            return True
+    return False
 
 
 @client.event
@@ -32,18 +43,36 @@ async def on_ready():
 @client.command()
 async def warn(ctx, member: discord.Member, *, reason="No reason given"):
     if ctx.author.id in permissions:
-        cur.execute(f"insert into warnings (user_id, reason) values ({member.id},'{reason}');")
+        cur.execute(f"insert into warns (user_id, user_nick, reason) values ({member.id},'{member.nick}','{reason}');")
         conn.commit()
         await ctx.send(f"Warned user {member} for {reason}")
     else:
         await ctx.send("You aren't permitted to use this command")
 
 @client.command()
-async def delwarn(ctx, IDnum: int):
+async def mute(ctx, member: discord.Member, *, reason="No reason given"):
     if ctx.author.id in permissions:
-        cur.execute(f"delete from warnings where id={IDnum};")
+        cur.execute(f"insert into mutes (user_id, user_nick, reason) values ({member.id},'{member.nick}','{reason}');")
         conn.commit()
-        await ctx.send(f"Warn {IDnum} removed")
+        await ctx.send(f"Muted user {member} for {reason}")
+    else:
+        await ctx.send("You aren't permitted to use this command")
+
+@client.command()
+async def delwarn(ctx, ID: int):
+    if ctx.author.id in permissions:
+        cur.execute(f"delete from warns where id={ID};")
+        conn.commit()
+        await ctx.send(f"Warn {ID} removed")
+    else:
+        await ctx.send("You aren't permitted to use this command")
+
+@client.command()
+async def unmute(ctx, member: discord.Member):
+    if ctx.author.id in permissions:
+        cur.execute(f"delete from mutes where user_id={member.id};")
+        conn.commit()
+        await ctx.send(f"Mute removed from {member}")
     else:
         await ctx.send("You aren't permitted to use this command")
 
@@ -53,12 +82,19 @@ async def warnings(ctx, member: discord.Member):
         title="Warnings",
         description=f"Warnings of user {member}",
         colour=discord.Colour.dark_blue())
-    cur.execute(f"select * from warnings where user_id={member.id};")
+    cur.execute(f"select * from mutes where user_id={member.id};")
+    mutes = cur.fetchall()
+    cur.execute(f"select * from warns where user_id={member.id};")
     warns = cur.fetchall()
+    for mute in mutes:
+        embed.add_field(name=f'Mute status:', value=f"Muted for: {mute[3]}", inline=False)
+    if not(mutes):
+        embed.add_field(name='Mute status:', value="Not muted.", inline=False)
     for warn in warns:
         embed.add_field(name=f'Warn: {warn[2]}', value=f"Warn ID: {warn[0]}", inline=False)
-    if not(warns):
-        embed.add_field(name=f'None!', value=f"You don't have any warnings, good job!", inline=False)
+    if not(mutes):
+        if not(warns):
+            embed.add_field(name="You don't have any warnings.", value="Good job!", inline=False)
     await ctx.send(embed=embed)
 
 #@client.command()
@@ -172,7 +208,7 @@ async def sa(ctx, *, msg):
     try:
         replay = cb.say(msg)  # get reply from cleverbot
     except Exception as error:
-        await ctx.send(f'Something bad happend, error: {error}, please report this to Shreks little helper')
+        await ctx.send(f'Something bad happend, error: {error}, please report this to creator')
     else:
         await ctx.send(replay)  # send reply from cleverbot to server
 
@@ -192,7 +228,8 @@ async def wiki(ctx, *, msg):
 
 @client.command()
 async def aboutbob(ctx):
-    await ctx.send("Hi, I am Bob, I am bot made by me(me)!")
+    creator = await client.fetch_user(230750179874045952)
+    await ctx.send(f"Hi, I am Bob, I am bot made by {creator}!")
 
 
 @client.command()
@@ -352,11 +389,21 @@ async def stop(ctx):
 #    except:
 #        await ctx.send("I am not connected to any channel")
 
+@client.event
+async def on_command_error(ctx, error):
+    creator = await client.fetch_user(230750179874045952)
+    if isinstance(error, MissingRequiredArgument) or isinstance(error, BadArgument) or isinstance(error, ArgumentParsingError):
+        await ctx.channel.send(error)
+    else:
+        await ctx.channel.send(error + f" report that to {creator}")
+
 
 @client.event
 async def on_message(message):
     msg = message.content
     print(msg)
+    if is_muted(message.author.id):
+        await message.delete()
     await client.process_commands(message)
 
 
