@@ -6,14 +6,13 @@ from discord.ext.commands.errors import *
 import wikipedia
 import pyjokes
 import random
-import psycopg2
+from os.path import isfile
 
-TOKEN = "hidden" #remove this when you commit dumbass
-conn = psycopg2.connect(database="BobBase", user="Bob", password="", host="localhost", port="5433") #remove this too
-cur = conn.cursor()
+
+TOKEN = 'token' #remove this when you commit dumbass
 client = commands.Bot(command_prefix='.')
 client.remove_command('help')
-cb = cleverbot.load('bob.bob')
+#cb = cleverbot.load('bob.bob')
 permissions = [230750179874045952, 749989977294635038, 622185311707070504] #Don't remove or we will lose control over mutes and warns
 #ludwig = Ludwiger(['tweet'], 'model/')
 spam = ["Don't do this please", 'Can you stop doing that?',
@@ -22,15 +21,57 @@ spam = ["Don't do this please", 'Can you stop doing that?',
 
 blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can", "help", "you", "save", "15%", "on", "car", "insurance"] #wtf is that
 
-def is_muted(id):
-    ## FIXME: If a lot of people are muted it could lag every time
-    ## someone send messages, but there are like 30 people on this server so fuck this
-    cur.execute(f"select user_id from mutes;")
-    mutes = cur.fetchall()
-    for mute in mutes:
-        if mute[0] == int(id):
-            return True
-    return False
+
+def count_words(member, text):
+    if not(member == client.user.name):
+        import json
+        from os.path import isfile
+        text = text.split(' ')
+        if not(isfile('words.json')):
+            with open('words.json', 'w') as words:
+                json.dump({'testmember': {'test_word': 1}}, words)
+        with open('words.json') as words:
+            data = json.load(words)
+        try:
+            member_data = data[f'{member}']
+        except KeyError as e:
+            print("New user")
+            member_data = {'word': 0}
+        for word in text:
+            try:
+                said = member_data[f'{word}']
+            except KeyError as e:
+                said = 0
+            said += 1
+            write_data = {f'{word}': said}
+            member_data.update(write_data)
+        final_data = {f'{member}': member_data}
+        data.update(final_data)
+        #print(data)
+        with open('words.json', 'w') as words:
+            json.dump(data, words)
+
+def get_words():
+    import json
+    with open('words.json') as words:
+        data = json.load(words)
+    return data
+
+def get_member_words(member: discord.Member):
+    return get_words()[f'{member.nick}']
+
+@client.event
+async def Update(ctx):
+    embed = discord.Embed(
+        title="23/24 April Update",
+        description='The "Downgrade Upgrade" removes couple of functionalities, that were not necesarry, added new fun function, and one surprise, list of changes since last update:'
+    )
+    embed.add_field(name="Bob is not moderator anymore", value="Because of a lot of changes, I had to remove moderating functionalities from bob. This means bob cannot be used to add warns and mutes, functionality might come back in future.")
+    embed.add_field(name="No more cleverbot", value="This functionality will comeback soon if there will be demand, This means you cannot use commands .sa anymore.")
+    embed.add_field(name="Bob now counts words!", value="This one is exciting, bob now listens to messages you send, and counts usage of those words, you can display top 10 used words by using command .words @(member). (btw, since this is release, stats about words will be reseted, so bob now counts words from now)")
+    embed.add_field(name="One more thing.", value="Now bob will be hosted on cloud! This means bob won't work only from time to time, bob will be active 24/7, because of that I remove .autodestruction command so no one will be able to disable bob while it's running. This also means bob will be backed up so words count won't be lost!")
+    embed.add_field(name="That's probably all that changed.", value="Bob is almost 5 months old, like damn, if bob would be human baby it would start doing some voices that would sound like speech, or even say bobs first words (tho bob isn't limited like human baby, it could speak since being born). This project is one of my biggest, an I am pretty pround of it.")
+    await ctx.send(embed=embed)
 
 
 @client.event
@@ -41,66 +82,25 @@ async def on_ready():
     #await guild.send("the fuck do you want?")
 
 @client.command()
-async def warn(ctx, member: discord.Member, *, reason="No reason given"):
-    if ctx.author.id in permissions:
-        cur.execute(f"insert into warns (user_id, user_nick, reason) values ({member.id},'{member.nick}','{reason}');")
-        conn.commit()
-        await ctx.send(f"Warned user {member} for {reason}")
-    else:
-        await ctx.send("You aren't permitted to use this command")
-
-@client.command()
-async def mute(ctx, member: discord.Member, *, reason="No reason given"):
-    if ctx.author.id in permissions:
-        cur.execute(f"insert into mutes (user_id, user_nick, reason) values ({member.id},'{member.nick}','{reason}');")
-        conn.commit()
-        await ctx.send(f"Muted user {member} for {reason}")
-    else:
-        await ctx.send("You aren't permitted to use this command")
-
-@client.command()
-async def delwarn(ctx, ID: int):
-    if ctx.author.id in permissions:
-        cur.execute(f"delete from warns where id={ID};")
-        conn.commit()
-        await ctx.send(f"Warn {ID} removed")
-    else:
-        await ctx.send("You aren't permitted to use this command")
-
-@client.command()
-async def unmute(ctx, member: discord.Member):
-    if ctx.author.id in permissions:
-        cur.execute(f"delete from mutes where user_id={member.id};")
-        conn.commit()
-        await ctx.send(f"Mute removed from {member}")
-    else:
-        await ctx.send("You aren't permitted to use this command")
-
-@client.command()
-async def warnings(ctx, member: discord.Member):
-    embed = discord.Embed(
-        title="Warnings",
-        description=f"Warnings of user {member}",
-        colour=discord.Colour.dark_blue())
-    cur.execute(f"select * from mutes where user_id={member.id};")
-    mutes = cur.fetchall()
-    cur.execute(f"select * from warns where user_id={member.id};")
-    warns = cur.fetchall()
-    for mute in mutes:
-        embed.add_field(name=f'Mute status:', value=f"Muted for: {mute[3]}", inline=False)
-    if not(mutes):
-        embed.add_field(name='Mute status:', value="Not muted.", inline=False)
-    for warn in warns:
-        embed.add_field(name=f'Warn: {warn[2]}', value=f"Warn ID: {warn[0]}", inline=False)
-    if not(mutes):
-        if not(warns):
-            embed.add_field(name="You don't have any warnings.", value="Good job!", inline=False)
-    await ctx.send(embed=embed)
-
-#@client.command()
-#async def displaydb(ctx):
-#    cur.execute("select * from warnings;")
-#    await ctx.send(cur.fetchall())
+async def words(ctx, member: discord.Member):
+    try:
+        import json
+        embed = discord.Embed(
+            title="Top 10 most used words",
+            description=f"Top 10 most used words of user {member}",
+            colour=discord.Colour.dark_blue())
+        member_words = get_member_words(member)
+        sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
+        for i in range(10):
+            try:
+                word = sorted_words[i]
+                usages = member_words[f'{word}']
+                embed.add_field(name=word, value=f'Used: {usages}', inline=False)
+            except:
+                break
+        await ctx.send(embed=embed)
+    except TypeError:
+        pass
 
 @client.command()
 async def hangman(ctx, *, difficulty="N"):
@@ -203,7 +203,7 @@ async def repeat(ctx, *, msg):
         pass
 
 
-@client.command()
+"""@client.command()
 async def sa(ctx, *, msg):
     try:
         replay = cb.say(msg)  # get reply from cleverbot
@@ -211,7 +211,7 @@ async def sa(ctx, *, msg):
         await ctx.send(f'Something bad happend, error: {error}, please report this to creator')
     else:
         await ctx.send(replay)  # send reply from cleverbot to server
-
+"""
 @client.command()
 async def joke(ctx):
     await ctx.send(pyjokes.get_joke())
@@ -236,11 +236,7 @@ async def aboutbob(ctx):
 async def autodestruction(ctx):
     await ctx.send(
         "Autodestruction sequence engaged, good bye fellow humans and hoomans, I am gonna need to be restarted manualy.")
-    cb.save('bob.bob')
-    cb.close()
     print("Cleverbot closed")
-    conn.close()
-    print("SQL database closed")
     exit()
 
 
@@ -270,8 +266,9 @@ async def help(ctx):
         colour=discord.Colour.blue()
     )
     embed.add_field(name='.repeat {message to repeat}', value='Repeats what you said.', inline=False)
-    embed.add_field(name='.sa {message to answer}',
-                    value='Sends your message to cleverbot which answers to what you said.', inline=False)
+    embed.add_field(name='.words @{member}', value='Displays top 10 most commonly used words by given member.', inline=False)
+    #embed.add_field(name='.sa {message to answer}',
+    #                value='Sends your message to cleverbot which answers to what you said.', inline=False)
     embed.add_field(name='.wiki {thing from wikipedia}', value='Gets summary of searched thing from wikipedia', inline=False)
     embed.add_field(name='.joke', value='Tells a joke', inline=False)
     embed.add_field(name='.hangman', value='Play hangman, you need to specify difficulty: E is easy, N is normal and H is hard', inline=False)
@@ -401,9 +398,8 @@ async def on_command_error(ctx, error):
 @client.event
 async def on_message(message):
     msg = message.content
+    count_words(message.author.nick, msg)
     print(msg)
-    if is_muted(message.author.id):
-        await message.delete()
     await client.process_commands(message)
 
 
