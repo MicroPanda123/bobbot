@@ -18,38 +18,40 @@ permissions = [230750179874045952, 749989977294635038, 622185311707070504] #Don'
 spam = ["Don't do this please", 'Can you stop doing that?',
         'No buddy', 'God dammit stop', 'Why are you doing that?',
         'bruh']  ## TODO: Use this somewhere
-
+ignored = ['i', 'a', 'and', 'but', 'then', 'that', 'you', 'me']
 blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can", "help", "you", "save", "15%", "on", "car", "insurance"] #wtf is that
 
 
 def count_words(member, text):
-    if not(member == client.user.name):
-        import json
-        from os.path import isfile
-        text = text.split(' ')
-        if not(isfile('words.json')):
-            with open('words.json', 'w') as words:
-                json.dump({'testmember': {'test_word': 1}}, words)
-        with open('words.json') as words:
-            data = json.load(words)
-        try:
-            member_data = data[f'{member}']
-        except KeyError as e:
-            print("New user")
-            member_data = {'word': 0}
-        for word in text:
+    text = text.lower()
+    if not(any(ignore in text for ignore in ignored)):
+        if not(member == client.user.name):
+            import json
+            from os.path import isfile
+            text = text.split(' ')
+            if not(isfile('words.json')):
+                with open('words.json', 'w') as words:
+                    json.dump({'testmember': {'test_word': 1}}, words)
+            with open('words.json') as words:
+                data = json.load(words)
             try:
-                said = member_data[f'{word}']
+                member_data = data[f'{member}']
             except KeyError as e:
-                said = 0
-            said += 1
-            write_data = {f'{word}': said}
-            member_data.update(write_data)
-        final_data = {f'{member}': member_data}
-        data.update(final_data)
-        #print(data)
-        with open('words.json', 'w') as words:
-            json.dump(data, words)
+                print("New user")
+                member_data = {'word': 0}
+            for word in text:
+                try:
+                    said = member_data[f'{word}']
+                except KeyError as e:
+                    said = 0
+                said += 1
+                write_data = {f'{word}': said}
+                member_data.update(write_data)
+            final_data = {f'{member}': member_data}
+            data.update(final_data)
+            #print(data)
+            with open('words.json', 'w') as words:
+                json.dump(data, words)
 
 def get_words():
     import json
@@ -59,19 +61,6 @@ def get_words():
 
 def get_member_words(member: discord.Member):
     return get_words()[f'{member.nick}']
-
-@client.event
-async def Update(ctx):
-    embed = discord.Embed(
-        title="23/24 April Update",
-        description='The "Downgrade Upgrade" removes couple of functionalities, that were not necesarry, added new fun function, and one surprise, list of changes since last update:'
-    )
-    embed.add_field(name="Bob is not moderator anymore", value="Because of a lot of changes, I had to remove moderating functionalities from bob. This means bob cannot be used to add warns and mutes, functionality might come back in future.")
-    embed.add_field(name="No more cleverbot", value="This functionality will comeback soon if there will be demand, This means you cannot use commands .sa anymore.")
-    embed.add_field(name="Bob now counts words!", value="This one is exciting, bob now listens to messages you send, and counts usage of those words, you can display top 10 used words by using command .words @(member). (btw, since this is release, stats about words will be reseted, so bob now counts words from now)")
-    embed.add_field(name="One more thing.", value="Now bob will be hosted on cloud! This means bob won't work only from time to time, bob will be active 24/7, because of that I remove .autodestruction command so no one will be able to disable bob while it's running. This also means bob will be backed up so words count won't be lost!")
-    embed.add_field(name="That's probably all that changed.", value="Bob is almost 5 months old, like damn, if bob would be human baby it would start doing some voices that would sound like speech, or even say bobs first words (tho bob isn't limited like human baby, it could speak since being born). This project is one of my biggest, an I am pretty pround of it.")
-    await ctx.send(embed=embed)
 
 
 @client.event
