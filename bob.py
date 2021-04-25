@@ -71,7 +71,9 @@ async def on_ready():
 
 @client.command()
 async def secret(ctx):
-    await ctx.send("Secret!")
+    import random
+    number = random.randint(10, 60)
+    await ctx.send(str(number))
 
 @client.command()
 async def words(ctx, member: discord.Member):
