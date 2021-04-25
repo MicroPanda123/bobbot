@@ -62,13 +62,16 @@ def get_words():
 def get_member_words(member: discord.Member):
     return get_words()[f'{member.nick}']
 
-
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client.user))
     await client.change_presence(activity=discord.Game("being bob"))  # set bots status as "being bob"
     #guild = await client.fetch_channel(770408786011226124)
     #await guild.send("the fuck do you want?")
+
+@client.command()
+async def secret(ctx):
+    await ctx.send("Secret!")
 
 @client.command()
 async def words(ctx, member: discord.Member):
