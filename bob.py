@@ -23,7 +23,7 @@ blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can",
 
 
 def count_words(member, text):
-    text = text.lower()
+    text = text.lower() #make text lowercase so it won't count different cases as different words
     if not(any(ignore in text for ignore in ignored)):
         if not(member == client.user.name):
             import json
@@ -31,35 +31,35 @@ def count_words(member, text):
             text = text.split(' ')
             if not(isfile('words.json')):
                 with open('words.json', 'w') as words:
-                    json.dump({'testmember': {'test_word': 1}}, words)
+                    json.dump({'testmember': {'test_word': 1}}, words) #create testmember for json file if not existing
             with open('words.json') as words:
-                data = json.load(words)
+                data = json.load(words) #read data from json file
             try:
-                member_data = data[f'{member}']
+                member_data = data[f'{member}'] #read data of specified member
             except KeyError as e:
                 print("New user")
-                member_data = {'word': 0}
+                member_data = {'word': 0} #create template data for new member
             for word in text:
                 try:
-                    said = member_data[f'{word}']
+                    said = member_data[f'{word}'] #get info if word was said and how much
                 except KeyError as e:
-                    said = 0
+                    said = 0 #set said counter to one if word was never said
                 said += 1
                 write_data = {f'{word}': said}
-                member_data.update(write_data)
-            final_data = {f'{member}': member_data}
-            data.update(final_data)
+                member_data.update(write_data) #update members data
+            final_data = {f'{member}': member_data} #update members data for whole json
+            data.update(final_data) #add members data to final
             #print(data)
             with open('words.json', 'w') as words:
-                json.dump(data, words)
+                json.dump(data, words) #save json data to file
 
-def get_words():
+def get_words(): #get data from json file
     import json
     with open('words.json') as words:
         data = json.load(words)
     return data
 
-def get_member_words(member: discord.Member):
+def get_member_words(member: discord.Member): #get members data from json file
     return get_words()[f'{member.nick}']
 
 @client.event
