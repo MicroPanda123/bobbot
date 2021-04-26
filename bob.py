@@ -9,7 +9,7 @@ import random
 from os.path import isfile
 
 with open('token.txt', 'r') as token_file:
-    token = token_file.read()
+	TOKEN = token_file.read()
 client = commands.Bot(command_prefix='.')
 client.remove_command('help')
 #cb = cleverbot.load('bob.bob')
