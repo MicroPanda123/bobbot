@@ -49,6 +49,7 @@ def count_words(member, text):
                 member_data.update(write_data) #update members data
             final_data = {f'{member}': member_data} #update members data for whole json
             data.update(final_data) #add members data to final
+            data.remove("")
             #print(data)
             with open('words.json', 'w') as words:
                 json.dump(data, words, indent=3) #save json data to file
@@ -85,12 +86,12 @@ async def words(ctx, member: discord.Member):
             colour=discord.Colour.dark_blue())
         member_words = get_member_words(member)
         sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
+
         for i in range(10):
             try:
                 word = sorted_words[i]
                 if word != "":
                     usages = member_words[f'{word}']
-                    print(f"{word}: {usages}")
                     embed.add_field(name=word, value=f'Used: {usages}', inline=False)
             except:
                 break
