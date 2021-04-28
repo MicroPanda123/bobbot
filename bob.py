@@ -88,9 +88,10 @@ async def words(ctx, member: discord.Member):
         for i in range(10):
             try:
                 word = sorted_words[i]
-                usages = member_words[f'{word}']
-                print(f"{word}: {usages}")
-                embed.add_field(name=word, value=f'Used: {usages}', inline=False)
+                if word != "":
+                    usages = member_words[f'{word}']
+                    print(f"{word}: {usages}")
+                    embed.add_field(name=word, value=f'Used: {usages}', inline=False)
             except:
                 break
         await ctx.send(embed=embed)
