@@ -24,7 +24,7 @@ blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can",
 
 def count_words(member, text):
     text = text.lower() #make text lowercase so it won't count different cases as different words
-    if not(any(ignore in text for ignore in ignored)):
+    if not(any(ignore == text for ignore in ignored)):
         if not(member == client.user.name):
             import json
             from os.path import isfile
