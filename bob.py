@@ -46,6 +46,7 @@ def count_words(member, text):
                     said = 0 #set said counter to one if word was never said
                 said += 1
                 write_data = {f'{word}': said}
+                print(write_data)
                 member_data.update(write_data) #update members data
             final_data = {f'{member}': member_data} #update members data for whole json
             data.update(final_data) #add members data to final
