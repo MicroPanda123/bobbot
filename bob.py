@@ -49,7 +49,6 @@ def count_words(member, text):
                 member_data.update(write_data) #update members data
             final_data = {f'{member}': member_data} #update members data for whole json
             data.update(final_data) #add members data to final
-            data.remove("")
             #print(data)
             with open('words.json', 'w') as words:
                 json.dump(data, words, indent=3) #save json data to file
