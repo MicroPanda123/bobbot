@@ -386,7 +386,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, MissingRequiredArgument) or isinstance(error, BadArgument) or isinstance(error, ArgumentParsingError):
         await ctx.channel.send(error)
     else:
-        await ctx.channel.send(error + f" report that to {creator}")
+        await ctx.channel.send(str(error) + f" report that to {creator}")
 
 
 @client.event
