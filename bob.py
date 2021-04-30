@@ -96,7 +96,6 @@ async def words(ctx, member: discord.Member, text: Optional[str] = None):
                 colour=discord.Colour.dark_blue())
             member_words = get_member_words(member)
             sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
-
             for i in range(10):
                 try:
                     word = sorted_words[i]
@@ -107,15 +106,14 @@ async def words(ctx, member: discord.Member, text: Optional[str] = None):
                 except:
                     break
             await ctx.send(embed=embed)
-        else:
+        """else:
             embed = discord.Embed( 
                 title=f"Usages of word {text}",
                 description=f"Usages of word {text} of user {member}",
                 colour=discord.Colour.dark_blue())
             usages = get_usages_of_word_per_member(member, text)
             embed.add_field(name=text, value=f'Used: {usages}', inline=False)
-            await ctx.send(embed=embed)
-        
+            await ctx.send(embed=embed)"""
     except TypeError:
         pass
 
