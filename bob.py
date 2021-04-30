@@ -89,6 +89,7 @@ async def secret(ctx):
 async def words(ctx, member: discord.Member, text: Optional[str] = None):
     try:
         import json
+        print(text)
         if text == None:
             embed = discord.Embed( 
                 title="Top 10 most used words",
