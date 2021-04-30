@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 import cleverbot
 import discord
 from discord.ext import commands
@@ -63,6 +64,14 @@ def get_words(): #get data from json file
 def get_member_words(member: discord.Member): #get members data from json file
     return get_words()[f'{member.nick}']
 
+def get_usages_of_word_per_member(member: discord.Member, word): #get usages of word from specific user
+    member_words = get_member_words(member)
+    try:
+        usages = member_words[f'{word}']
+    except KeyError:
+        usages = 0
+    return usages
+
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client.user))
@@ -77,25 +86,36 @@ async def secret(ctx):
     await ctx.send(str(number))
 
 @client.command()
-async def words(ctx, member: discord.Member):
+async def words(ctx, member: discord.Member, text: Optional[str] = None):
     try:
         import json
-        embed = discord.Embed(
-            title="Top 10 most used words",
-            description=f"Top 10 most used words of user {member}",
-            colour=discord.Colour.dark_blue())
-        member_words = get_member_words(member)
-        sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
+        if text == None:
+            embed = discord.Embed( 
+                title="Top 10 most used words",
+                description=f"Top 10 most used words of user {member}",
+                colour=discord.Colour.dark_blue())
+            member_words = get_member_words(member)
+            sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
 
-        for i in range(10):
-            try:
-                word = sorted_words[i]
-                if word != "":
+            for i in range(10):
+                try:
+                    word = sorted_words[i]
+                    if word != "":
+                        word = "Photos"
                     usages = member_words[f'{word}']
                     embed.add_field(name=word, value=f'Used: {usages}', inline=False)
-            except:
-                break
-        await ctx.send(embed=embed)
+                except:
+                    break
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed( 
+                title=f"Usages of word {text}",
+                description=f"Usages of word {text} of user {member}",
+                colour=discord.Colour.dark_blue())
+            usages = get_usages_of_word_per_member(member, text)
+            embed.add_field(name=text, value=f'Used: {usages}', inline=False)
+            await ctx.send(embed=embed)
+        
     except TypeError:
         pass
 
