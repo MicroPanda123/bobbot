@@ -428,7 +428,6 @@ async def on_command_error(ctx, error):
 async def on_message(message):
     msg = message.content
     count_words(message.guild.id, message.author.id, msg)
-    print(msg)
     await client.process_commands(message)
 
 
