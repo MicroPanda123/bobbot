@@ -427,11 +427,8 @@ async def on_command_error(ctx, error):
 @client.event
 async def on_message(message):
     msg = message.content
-    print(msg)
     count_words(message.guild.id, message.author.id, msg)
     await client.process_commands(message)
 
-
-penis = "proncie"
 
 client.run(TOKEN)
