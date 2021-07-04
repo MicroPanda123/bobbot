@@ -24,43 +24,42 @@ blocked_shit = ["that’s", "cool", "but", "did", "you", "know", "geico", "can",
 
 
 def count_words(guild, member, text):
-    text = text.lower() #make text lowercase so it won't count different cases as different words
-    if not(any(ignore == text for ignore in ignored)):
-        if not(member == client.user.name):
-            import json
-            from os.path import isfile
-            text = text.split(' ')
-            if not(isfile('words.json')):
-                with open('words.json', 'w') as words:
-                    json.dump({'testguild': {'testmember': {'test_word': 1}}}, words) #create testmember for json file if not existing
-            with open('words.json') as words:
-                data = json.load(words) #read data from json file
-            try:
-                guild_data = data[f'{guild}']
-            except KeyError as e:
-                print("New guild")
-                guild_data = {'member': 0}
-            try:
-                member_data = guild_data[f'{member}'] #read data of specified member
-            except KeyError as e:
-                print("New user")
-                member_data = {'word': 0} #create template data for new member
-            for word in text:
-                try:
-                    said = member_data[f'{word}'] #get info if word was said and how much
-                except KeyError as e:
-                    said = 0 #set said counter to one if word was never said
-                said += 1
-                write_data = {f'{word}': said}
-                #print(write_data)
-                member_data.update(write_data) #update members data
-            guild_write_data = {f'{member}': member_data}
-            guild_data.update(guild_write_data)
-            final_data = {f'{guild}': guild_data} #update members data for whole json
-            data.update(final_data) #add members data to final
-            #print(data)
-            with open('words.json', 'w') as words:
-                json.dump(data, words, indent=3) #save json data to file
+	text = text.lower() #make text lowercase so it won't count different cases as different words
+	if not text in ignored and member != client.user.name:
+		import json
+		from os.path import isfile
+		text = text.split(' ')
+		if not(isfile('words.json')):
+		    with open('words.json', 'w') as words:
+		        json.dump({'testguild': {'testmember': {'test_word': 1}}}, words) #create testmember for json file if not existing
+		with open('words.json') as words:
+		    data = json.load(words) #read data from json file
+		try:
+		    guild_data = data[f'{guild}']
+		except KeyError as e:
+		    print("New guild")
+		    guild_data = {'member': 0}
+		try:
+		    member_data = guild_data[f'{member}'] #read data of specified member
+		except KeyError as e:
+		    print("New user")
+		    member_data = {'word': 0} #create template data for new member
+		for word in text:
+		    try:
+		        said = member_data[f'{word}'] #get info if word was said and how much
+		    except KeyError as e:
+		        said = 0 #set said counter to one if word was never said
+		    said += 1
+		    write_data = {f'{word}': said}
+		    #print(write_data)
+		    member_data.update(write_data) #update members data
+		guild_write_data = {f'{member}': member_data}
+		guild_data.update(guild_write_data)
+		final_data = {f'{guild}': guild_data} #update members data for whole json
+		data.update(final_data) #add members data to final
+		#print(data)
+		with open('words.json', 'w') as words:
+		    json.dump(data, words, indent=3) #save json data to file
 
 def get_words(): #get data from json file
     import json
@@ -101,35 +100,34 @@ async def test(ctx, member: discord.Member):
 
 @client.command()
 async def words(ctx, member: discord.Member, text: Optional[str] = None):
-    try:
-        import json
-        if text == None:
-            embed = discord.Embed( 
-                title="Top 10 most used words",
-                description=f"Top 10 most used words of user {member}",
-                colour=discord.Colour.dark_blue())
-            member_words = get_member_words(ctx.guild, member)
-            sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
-            for i in range(10):
-                try:
-                    word = sorted_words[i]
-                    if word == "":
-                        word = "Photos"
-                    usages = member_words[f'{word}']
-                    embed.add_field(name=word, value=f'Used: {usages}', inline=False)
-                except:
-                    break
-            await ctx.send(embed=embed)
-        else:
-            embed = discord.Embed( 
-                title=f"Usages of word {text}",
-                description=f"Usages of word {text} of user {member}",
-                colour=discord.Colour.dark_blue())
-            usages = get_usages_of_word_per_member(member, text)
-            embed.add_field(name=text, value=f'Used: {usages}', inline=False)
-            await ctx.send(embed=embed)
-    except TypeError:
-        pass
+	try:
+		import json
+		if text is None:
+			embed = discord.Embed( 
+			    title="Top 10 most used words",
+			    description=f"Top 10 most used words of user {member}",
+			    colour=discord.Colour.dark_blue())
+			member_words = get_member_words(ctx.guild, member)
+			sorted_words = sorted(member_words, key=member_words.__getitem__, reverse=True)
+			for i in range(10):
+			    try:
+			        word = sorted_words[i]
+			        if word == "":
+			            word = "Photos"
+			        usages = member_words[f'{word}']
+			        embed.add_field(name=word, value=f'Used: {usages}', inline=False)
+			    except:
+			        break
+		else:
+			embed = discord.Embed( 
+			    title=f"Usages of word {text}",
+			    description=f"Usages of word {text} of user {member}",
+			    colour=discord.Colour.dark_blue())
+			usages = get_usages_of_word_per_member(member, text)
+			embed.add_field(name=text, value=f'Used: {usages}', inline=False)
+		await ctx.send(embed=embed)
+	except TypeError:
+	    pass
 
 @client.command()
 async def hangman(ctx, *, difficulty="N"):
@@ -217,19 +215,17 @@ async def hangman(ctx, *, difficulty="N"):
 
 @client.command()
 async def repeat(ctx, *, msg):
-    await ctx.message.delete()
-    words = 0
-    chck_msg = msg.lower()
-    for i in blocked_shit:
-        #print(i)
-        #print(chck_msg)
-        if i in chck_msg:
-            print("asshole")
-            words = words + 1
-    if words < 4:
-        await ctx.send(f'{msg}')
-    else:
-        pass
+	await ctx.message.delete()
+	words = 0
+	chck_msg = msg.lower()
+	for i in blocked_shit:
+		        #print(i)
+		        #print(chck_msg)
+		if i in chck_msg:
+			print("asshole")
+			words += 1
+	if words < 4:
+		await ctx.send(f'{msg}')
 
 
 """@client.command()
@@ -417,11 +413,12 @@ async def stop(ctx):
 
 @client.event
 async def on_command_error(ctx, error):
-    creator = await client.fetch_user(230750179874045952)
-    if isinstance(error, MissingRequiredArgument) or isinstance(error, BadArgument) or isinstance(error, ArgumentParsingError):
-        await ctx.channel.send(error)
-    else:
-        await ctx.channel.send(str(error) + f" report that to {creator}")
+	creator = await client.fetch_user(230750179874045952)
+	if isinstance(error,
+	              (MissingRequiredArgument, BadArgument, ArgumentParsingError)):
+		await ctx.channel.send(error)
+	else:
+		await ctx.channel.send(str(error) + f" report that to {creator}")
 
 
 @client.event
