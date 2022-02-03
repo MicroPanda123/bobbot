@@ -27,9 +27,10 @@ async def on_message(message):
   msg = message.content
   if client.user.mentioned_in(message):
     print("Requesting response.")
+    print(msg)
     response = openai.Completion.create(
       engine="text-davinci-001",
-      prompt=openai_prompt + msg + "\nAi:",
+      prompt=openai_prompt + msg.replace("<@!772573761941274654>", "", 1) + "\nAi:",
       max_tokens=64,
       stop="Human:"
     )
