@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.errors import *
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import openai
 
-load_dotenv()
+#load_dotenv()
 #
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed.\nHuman: "
