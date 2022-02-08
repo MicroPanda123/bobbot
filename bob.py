@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import openai
 
 load_dotenv()
-
+#
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed.\nHuman: "
 client = commands.Bot(command_prefix='.')
