@@ -1,10 +1,6 @@
-import os
-from typing import Optional
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import *
-import random
-from os.path import isfile
 import os
 from dotenv import load_dotenv
 import openai
