@@ -5,7 +5,7 @@ import os
 import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed. You are talking to humans, their name is before : signs.\n"
+openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed.\n"
 client = commands.Bot(command_prefix='.')
 
 @client.event
@@ -20,7 +20,7 @@ async def on_message(message):
   msg = message.content
   if client.user.mentioned_in(message):
     print("Requesting response.")
-    prompt = openai_prompt + message.author.nick + ":" + msg.replace("<@!772573761941274654>", "", 1) + "\nAi:"
+    prompt = openai_prompt + message.author.nick + ": " + msg.replace("<@!772573761941274654>", "", 1) + "\nAi:"
     print(prompt)
     response = openai.Completion.create(
       engine="text-davinci-001",
