@@ -11,7 +11,7 @@ client = commands.Bot(command_prefix='.')
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client.user))
-    await client.change_presence(activity=discord.Game("being bob"))
+    await client.change_presence(activity=discord.Game("being bob, build 0.5"))
 
 @client.event
 async def on_message(message):
