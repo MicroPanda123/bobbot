@@ -5,7 +5,7 @@ import os
 import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed.\n"
+openai_prompt = "You are Bob, you are a discord bot made to entertain people on this server. Be funny, but also little cranky if needed. You are talking to humans, their name is before : signs.\n"
 client = commands.Bot(command_prefix='.')
 
 @client.event
