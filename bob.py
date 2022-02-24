@@ -11,7 +11,7 @@ client = commands.Bot(command_prefix='.')
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client.user))
-    await client.change_presence(activity=discord.Game("being bob"))
+    await client.change_presence(activity=discord.Game("being bob, hosted on heroku"))
 
 @client.event
 async def on_message(message):
@@ -29,7 +29,7 @@ async def on_message(message):
       stop="Human:"
     )
     response = response['choices'][0]['text'].strip()
-    await message.channel.send(response)
+    await message.reply(response)
     
 client.run(os.getenv("DISCORD_TOKEN"))
 
